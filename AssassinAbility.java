@@ -74,6 +74,7 @@ public abstract class AssassinAbility extends Ability {
 		public void useBattleCommand(Hero hero, BattleController controller) {
 			Hero target = controller.signalShowTargetOptions();
 			super.useBattleCommand(hero, target);
+			controller.animateBattleCommand(target, this.getAnimationImage(),true);
 			// Add status
 			// Is cloned within the status
 			applyAbilityStatus(target);
@@ -155,6 +156,7 @@ public abstract class AssassinAbility extends Ability {
 		public void useBattleCommand(Hero hero, BattleController controller) {
 			Hero target = controller.signalShowTargetOptions();
 			super.useBattleCommand(hero, target);
+			controller.animateBattleCommand(target, this.getAnimationImage(),true);
 			// Add status
 			// Is cloned within the status
 			Status newDecreaseDefense = applyAbilityStatus(target);

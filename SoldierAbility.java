@@ -197,20 +197,8 @@ public abstract class SoldierAbility extends Ability {
 		@Override
 		public void useBattleCommand(Hero hero, BattleController controller) {
 			Hero target = controller.signalShowTargetOptions();
-			hero.checkIfEnoughAP(this);
-			int otherDefenseRating = target.getDefenseRating();
-			int damageDone = this.getDamage() - otherDefenseRating;
-			if(damageDone <= 0)
-			{
-				damageDone = 1;
-			}
-			int otherHealth = target.getHealth();
-			int newHealth = otherHealth - damageDone;
+			super.useBattleCommand(hero, target);
 			controller.animateBattleCommand(target, this.getAnimationImage(),true);
-			System.out.println("AI" + " health change: " + target.getHealth());
-			hero.setAbilityPoints(hero.getAbilityPoints() - this.getPointCost());
-			target.setHealth(newHealth);
-			System.out.println("AI" + " health Change: " + target.getHealth());
 			// Add status
 			// Is cloned within the status
 			applyAbilityStatus(target);
@@ -377,6 +365,7 @@ public abstract class SoldierAbility extends Ability {
 		public void useBattleCommand(Hero hero, BattleController controller) {
 			Hero target = controller.signalShowTargetOptions();
 			super.useBattleCommand(hero, target);
+			controller.animateBattleCommand(target, this.getAnimationImage(),true);
 			// Add status
 			// Is cloned within the status
 			applyAbilityStatus(target);
