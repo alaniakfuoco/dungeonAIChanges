@@ -122,11 +122,15 @@ public class AI extends Player{
 			}
 		}
 		
-		// Monster will use an Antidote 75% of the time when poisoned (If such an item exists).
-		if (Status.getStatus(monster, "Poison") != null) {
+		// Monster will use an status curing item 75% of the time when under a status (If such an item exists).
+		Collection<Status> status = monster.getStatuses().values();
+
+		if (status.size() != 0) {
+			//String statusAffliction = setStatusCure(status);
+			
 			double random = Math.random();
 			if (random > 0.25) {
-				Item item = pickAntidote();
+				Item item = setStatusCure(status);
 				if(item != null)
 				{
 					System.out.println("AI using item: " + item.toString());
@@ -144,6 +148,8 @@ public class AI extends Player{
 				}
 			}
 		}
+		
+		
 
 		// Attack if no need to heal/recover
 		result = monster.selectCommand(playerParty);
@@ -153,10 +159,22 @@ public class AI extends Player{
 		
 		BattleCommand ability = result.getCmd();
 		Hero target = result.getTarget();
-		try {
-			ability.useBattleCommand(monster, target);
-		} catch (NotAfflictedWithStatusException e) {
-			e.printStackTrace();
+		if(controller != null)
+		{
+			if (ability instanceof OffensiveAbility) {
+				OffensiveAbility useAbility = (OffensiveAbility) ability;
+				useAbility.useBattleCommand(monster, target, controller);
+			} else {
+				ability.useBattleCommand(monster, controller);
+			}
+		}
+		else
+		{
+			try {
+				ability.useBattleCommand(monster, target);
+			} catch (NotAfflictedWithStatusException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		return result;
@@ -173,6 +191,26 @@ public class AI extends Player{
 		
 	}
 	
+	/**
+	 * Picks a random status effect which the current actor has an item for.
+	 * @param status A collection of all the status the current actor has.
+	 * @return An item which can cure a status the current actor has.
+	 */
+	private Item setStatusCure(Collection<Status> status) {
+		ArrayList<Item> matches = new ArrayList<>();
+		Collection<Item> inventory = this.getInventory().values();
+		for(Status currentStatus : status) {
+			for(Item currentItem : inventory) {
+				if (currentItem instanceof StatusItem && currentStatus.getName() == ((StatusItem) currentItem).getStatusAffected()) {
+					matches.add(currentItem);
+				}
+			}
+		}
+		if (matches.size() == 0) { return null; }
+		int selection = (int) Math.floor((Math.random() * (matches.size()-(1-1)) + 1) + (1-1));
+		return matches.get(selection - 1);
+	}
+
 	/**
 	 * Function used to start the AI turn, checks if the AI is crowd controlled, if it is will tick all current statuses on the acting hero and finish the AI's turn.
 	 * If not will proceed to scan the player party to choose the best course of action.
@@ -319,7 +357,7 @@ public class AI extends Player{
 	 * Picks an item to remove a poison effect.
 	 * @return Strongest healing item.
 	 */
-	private Item pickAntidote() {
+	private Item pickStatusItem(String status) {
 		Item antidote = null;
 		TreeMap<String, Item> inv = this.getInventory();
 		if(!inv.isEmpty())
@@ -329,14 +367,14 @@ public class AI extends Player{
 				// Find an existing antidote item
 				if (item instanceof StatusItem)
 				{
-					if(((StatusItem) item).getStatusAffected() == "Poison")
+					if(((StatusItem) item).getStatusAffected() == status)
 					{
 						antidote = item;
 					}
 				}
 			}
 		}
-		System.out.println("Item: " + antidote);
+		System.out.println("Item: " + antidote.toString());
 		return antidote;
 	}
 

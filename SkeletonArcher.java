@@ -2,8 +2,6 @@ package Heros;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-
 import BattleCommands.Ability;
 import BattleCommands.BaseAttack;
 import BattleCommands.OffensiveAbility;
