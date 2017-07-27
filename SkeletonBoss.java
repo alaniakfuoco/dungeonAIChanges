@@ -1,15 +1,10 @@
 package Heros;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import BattleCommands.Ability;
 import BattleCommands.BaseAttack;
 import BattleCommands.OffensiveAbility;
 import BattleCommands.SoldierAbility;
 import BattleCommands.SoldierAbility.Defend;
-import PartyContainers.AI;
-import PartyContainers.AiBattleReturnType;
 
 
 /**
@@ -19,7 +14,7 @@ import PartyContainers.AiBattleReturnType;
  *
  */
 
-public class SkeletonBoss extends Monster {
+public class SkeletonBoss extends Defender {
 	private static int experiencePerLevel = 100;
 	private static final String IMAGE = "/boss_skele.gif";
 	private int baseStrength;
@@ -66,36 +61,4 @@ public class SkeletonBoss extends Monster {
 	public String getImage() {
 		return SkeletonBoss.IMAGE;
 	}
-
-	@Override
-	public AiBattleReturnType selectCommand(Collection<Hero> playerParty) {
-		Hero target = null;
-		Ability ability = null;
-		
-		Collection<Ability> abilities = this.getAbilities().values();
-		Collection<Ability> availableAbilities = new ArrayList<>();
-		for (Ability a : abilities) {
-			if (a.getPointCost() < this.getAbilityPoints()) {
-				availableAbilities.add(a);
-			}
-		}
-
-		double random = Math.random();
-		if (random > 0.75 && availableAbilities.contains(shieldBash)) {
-			ability = shieldBash;
-			target = AI.selectByStat(playerParty,"abilityPoints",false); //Highest AP
-		} else if (random > 0.5 && availableAbilities.contains(SkeletonBossDefend)) {
-			ability = SkeletonBossDefend;
-			target = this; //Sets target to itself
-		} else if (random > 0.25 && availableAbilities.contains(hamString)) {
-			ability = hamString;
-			target = AI.selectByStat(playerParty,"health",false); //Highest Health
-		} else {
-			ability = baseAttack;
-			target = AI.selectByStat(playerParty,"health",true); //Lowest Health
-		}
-		
-		return new AiBattleReturnType(target, ability);
-	}
-	
 }

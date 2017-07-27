@@ -1,13 +1,9 @@
 package Heros;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import BattleCommands.Ability;
 import BattleCommands.BaseAttack;
 import BattleCommands.OffensiveAbility;
 import BattleCommands.SoldierAbility;
-import PartyContainers.AI;
-import PartyContainers.AiBattleReturnType;
 
 /**
  * SkeletonArcher hero class. Sets base level 1 SkeletonArcher fields. 
@@ -16,13 +12,8 @@ import PartyContainers.AiBattleReturnType;
  *
  */
 
-public class SkeletonArcher extends Monster{
-	private static int experiencePerLevel = 100;
+public class SkeletonArcher extends Weakener {
 	private static final String IMAGE = "/archer.gif";
-	private int baseStrength;
-	private int strengthItemBonus;
-	private int attackPower;
-	private BaseAttack baseAttack;
 	private OffensiveAbility snipe = new SoldierAbility.Snipe();
 	private OffensiveAbility multiShot = new SoldierAbility.MultiShot();
 	private OffensiveAbility poisonShot = new SoldierAbility.PoisonShot();
@@ -65,44 +56,6 @@ public class SkeletonArcher extends Monster{
 	}
 	
 	public static void main(String[] args){
-	}
-
-	@Override
-	public AiBattleReturnType selectCommand(Collection<Hero> playerParty) {
-		
-		Hero target = null;
-		Ability ability = null;
-		
-		Collection<Ability> abilities = this.getAbilities().values();
-		Collection<Ability> availableAbilities = new ArrayList<>();
-		for (Ability a : abilities) {
-			if (a.getPointCost() < this.getAbilityPoints()) {
-				availableAbilities.add(a);
-			}
-		}
-		
-		if (availableAbilities.size() == 1) {
-			ability = baseAttack;
-			target = AI.selectByStat(playerParty,"health",true); //Lowest Health
-		}
-		else {
-			double random = Math.random();
-			if (random > 0.75 && availableAbilities.contains(snipe)) {
-				ability = snipe;
-				target = AI.selectByStat(playerParty,"health",true); //Lowest Health
-			} else if (random > 0.5 && availableAbilities.contains(poisonShot)) {
-				ability = poisonShot;
-				target = AI.selectByStat(playerParty,"defenseRating",false);  //Highest Armour
-			} else if (random > 0.25 && availableAbilities.contains(multiShot)) {
-				ability = multiShot;
-				target = AI.selectByStat(playerParty,"health",false); //Highest Health
-			} else {
-				ability = baseAttack;
-				target = AI.selectByStat(playerParty,"health",true); //Lowest Health
-			}
-		}
-		
-		return new AiBattleReturnType(target, ability);
 	}
 
 }

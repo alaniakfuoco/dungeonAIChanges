@@ -1,15 +1,10 @@
 package Heros;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import BattleCommands.Ability;
 import BattleCommands.BaseAttack;
 import BattleCommands.OffensiveAbility;
 import BattleCommands.SoldierAbility;
 import BattleCommands.SoldierAbility.Defend;
-import PartyContainers.AI;
-import PartyContainers.AiBattleReturnType;
 
 /**
  * SkeletonSpearMan hero class. Sets base level 1 SkeletonSpearMan fields. 
@@ -17,13 +12,8 @@ import PartyContainers.AiBattleReturnType;
  * @author Kevin
  *
  */
-public class SkeletonSpearMan extends Monster {
-	private static int experiencePerLevel = 100;
+public class SkeletonSpearMan extends Punisher {
 	private static final String IMAGE = "/spear.gif";
-	private int baseStrength;
-	private int strengthItemBonus;
-	private int attackPower;
-	private BaseAttack baseAttack;
 	private OffensiveAbility lunge = new SoldierAbility.Lunge();
 	private OffensiveAbility shieldBash = new SoldierAbility.ShieldBash();
 	
@@ -65,39 +55,5 @@ public class SkeletonSpearMan extends Monster {
 		return SkeletonSpearMan.IMAGE;
 	}
 
-	@Override
-	public AiBattleReturnType selectCommand(Collection<Hero> playerParty) {
-		
-		Hero target = null;
-		Ability ability = null;
-		
-		Collection<Ability> abilities = this.getAbilities().values();
-		Collection<Ability> availableAbilities = new ArrayList<>();
-		for (Ability a : abilities) {
-			if (a.getPointCost() < this.getAbilityPoints()) {
-				availableAbilities.add(a);
-			}
-		}
-		
-		if (availableAbilities.size() == 1) {
-			ability = baseAttack;
-			target = AI.selectByStat(playerParty,"health",true); //Lowest Health
-		}
-		else {
-			double random = Math.random();
-			if (random > 0.75 && availableAbilities.contains(shieldBash)) {
-				ability = shieldBash;
-				target = AI.selectByStat(playerParty,"defenseRating",false); //Highest defense
-			} else if (random > 0.3 && availableAbilities.contains(lunge)) {
-				ability = lunge;
-				target = AI.selectByStat(playerParty,"health",true);  //Lowest Health
-			} else {
-				ability = baseAttack;
-				target = AI.selectByStat(playerParty,"health",true); //Lowest Health
-			}
-		}
-		
-		return new AiBattleReturnType(target, ability);
-	}
 }
 
