@@ -44,36 +44,37 @@ public abstract class Punisher extends Monster {
 			
 			
 			Collection<Ability> availableAbilities = getAvailableAbilities();
+			Collection<Hero> availableTargets = getAvailableTargets(playerParty);
 			
-			if (availableAbilities.size() == 1) {
+			if (availableAbilities.size() < 2) {
 				ability = baseAttack;
-				target = selectByStat(playerParty,"health",true); //Lowest Health
+				target = selectByStat(availableTargets,"health",true); //Lowest Health
 				return new AiBattleReturnType(target, ability);
 			}
 			else {
 				double random = Math.random();
-				System.out.println(random);
+				//System.out.println(random);
 				if(random > 0.90) {
 					ability = getDefensiveAbility(availableAbilities);
 				}
 				else if(random > 0.75) {
 					ability = getCrowdControlAbility(availableAbilities);
-					target = selectByStat(playerParty,"health",false); //Highest Health
+					target = selectByStat(availableTargets,"health",false); //Highest Health
 				}
 				else if(random > 0.55) {
 					ability = getOffensiveStatusAbility(availableAbilities);
-					target = selectIfCrowdControlled(playerParty);	//Crowd Controlled
-					if (target == null) { target = selectByStat(playerParty,"defenseRating",false); } //OR highest defense
+					target = selectIfCrowdControlled(availableTargets);	//Crowd Controlled
+					if (target == null) { target = selectByStat(availableTargets,"defenseRating",false); } //OR highest defense
 				}
 				else if(random > 0.15) {
 					ability = getOffensiveAbility(availableAbilities);
-					target = selectIfCrowdControlled(playerParty);	//Crowd Controlled
-					if (target == null) { target = selectByStat(playerParty,"health",true); } //OR lowest health
+					target = selectIfCrowdControlled(availableTargets);	//Crowd Controlled
+					if (target == null) { target = selectByStat(availableTargets,"health",true); } //OR lowest health
 				}
 			}
 			if (ability == null) { 
 				ability = baseAttack;
-				target = selectByStat(playerParty,"health",true); //Lowest Health 
+				target = selectByStat(availableTargets,"health",true); //Lowest Health 
 			}
 			return new AiBattleReturnType(target, ability);
 		}
