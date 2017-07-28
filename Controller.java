@@ -41,33 +41,34 @@ public abstract class Controller extends Monster {
 			Ability ability = null;
 			
 			Collection<Ability> availableAbilities = getAvailableAbilities();
+			Collection<Hero> availableTargets = getAvailableTargets(playerParty);
 			
-			if (availableAbilities.size() == 1) {
+			if (availableAbilities.size() < 2) {
 				ability = baseAttack;
-				target = selectByStat(playerParty,"health",true); //Lowest Health
+				target = selectByStat(availableTargets,"health",true); //Lowest Health
 				return new AiBattleReturnType(target, ability);
 			}
 			else {
 				double random = Math.random();
-				System.out.println(random);
+				//System.out.println(random);
 				if(random > 0.85) {
 					ability = getOffensiveAbility(availableAbilities);
 					if (ability == null) {
 						ability = getOffensiveStatusAbility(availableAbilities);
 					}
-					target = selectByStat(playerParty,"health",true); //Lowest Health
+					target = selectByStat(availableTargets,"health",true); //Lowest Health
 				}
 				else if(random > 0.60) {
 					ability = getDefensiveAbility(availableAbilities);
 				}
 				else if(random > 0.15) {
 					ability = getCrowdControlAbility(availableAbilities);
-					target = selectByStat(playerParty,"abilityPoints",false); //Highest abilityPoints
+					target = selectByStat(availableTargets,"abilityPoints",false); //Highest abilityPoints
 				}
 			}
 			if (ability == null) { 
 				ability = baseAttack;
-				target = selectByStat(playerParty,"health",true); //Lowest Health 
+				target = selectByStat(availableTargets,"health",true); //Lowest Health 
 			}
 			return new AiBattleReturnType(target, ability);
 		}

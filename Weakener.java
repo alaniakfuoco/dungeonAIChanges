@@ -44,34 +44,35 @@ public abstract class Weakener extends Monster {
 			
 			
 			Collection<Ability> availableAbilities = getAvailableAbilities();
+			Collection<Hero> availableTargets = getAvailableTargets(playerParty);
 			
-			if (availableAbilities.size() == 1) {
+			if (availableAbilities.size() < 2) {
 				ability = baseAttack;
-				target = selectByStat(playerParty,"health",false); //highest Health
+				target = selectByStat(availableTargets,"health",false); //highest Health
 				return new AiBattleReturnType(target, ability);
 			}
 			else {
 				double random = Math.random();
-				System.out.println(random);
+				//System.out.println(random);
 				if(random > 0.90) {
 					ability = getDefensiveAbility(availableAbilities);
 				}
 				else if(random > 0.75) {
 					ability = getOffensiveAbility(availableAbilities);
-					target = selectByStat(playerParty,"health",false); //Highest Health
+					target = selectByStat(availableTargets,"health",false); //Highest Health
 				}
 				else if(random > 0.55) {
 					ability = getCrowdControlAbility(availableAbilities);
-					target = selectByStat(playerParty,"health",false); //highest Health
+					target = selectByStat(availableTargets,"health",false); //highest Health
 				}
 				else if(random > 0.15) {
 					ability = getOffensiveStatusAbility(availableAbilities);
-					target = selectByStat(playerParty,"defenseRating",false); //highest defenseRating
+					target = selectByStat(availableTargets,"defenseRating",false); //highest defenseRating
 				}
 			}
 			if (ability == null) { 
 				ability = baseAttack;
-				target = selectByStat(playerParty,"health",false); //Lowest Health 
+				target = selectByStat(availableTargets,"health",false); //Lowest Health 
 			}
 			return new AiBattleReturnType(target, ability);
 		}

@@ -20,6 +20,7 @@ import Heros.SkeletonArcher;
 import Heros.SkeletonBoss;
 import Heros.SkeletonSpearMan;
 import Heros.SkeletonWarrior;
+import RPG_Exceptions.BattleModelException;
 import RPG_Exceptions.MaximumStatException;
 import RPG_Exceptions.NotAfflictedWithStatusException;
 import Statuses.Status;
@@ -68,33 +69,15 @@ public class AI extends Player{
 	 * @param player The enemy's player to access their party
 	 * @return AiBattleReturnType What is this? A class specifically made so that we can return two types of values by setting them as fields in this class.
 	 * This class stores the target and AI ability used to be published to the view. 
-	 * @throws MaximumStatException if the AI attempts to use a potion or ability when it would make no statistical difference to their hero 
+	 * @throws BattleModelException 
 	 * @throws NotAfflictedWithStatusException 
 	 */
-	public AiBattleReturnType scan(Monster monster, Player player) throws MaximumStatException
+	public AiBattleReturnType scan(Monster monster, Player player) throws BattleModelException
 	{
 		
 		AiBattleReturnType result;
 		TreeMap<String, Hero> party = player.getParty();
 		Collection<Hero> playerParty = party.values();
-		
-		/*OffensiveAbility playerHighestDamage = pickHighestDamage(playerParty);
-		
-		if(hero.getHealth() != hero.getMaxHealth())
-		{
-			if((playerHighestDamage.getDamage()-hero.getDefenseRating()) > hero.getHealth())
-			{
-				Item item = pickHealingItem();
-				if(item != null)
-				{
-					System.out.println("AI using item: " + item.toString());
-					item.useBattleCommand(hero, null);
-					AiBattleReturnType result = new AiBattleReturnType(null,item);
-					return result;
-				}
-			}
-		}
-		*/
 		
 		// Checks to see if Monster will use a Health item
 		double currentHealth = (double) monster.getHealth();
@@ -187,7 +170,7 @@ public class AI extends Player{
 		
 	}
 	
-	private void useItem(Item item, Monster monster) throws MaximumStatException {
+	private void useItem(Item item, Monster monster) throws BattleModelException {
 		System.out.println("AI using item: " + item.toString());
 		Hero target = null;
 		if(controller != null)
@@ -208,9 +191,10 @@ public class AI extends Player{
 	 * @param human: enemy party to scan
 	 * AiBattleReturnType: What is this? A class specifically made so that we can return two types of values by setting them as fields in this class.
 	 * This class stores the target and AI ability used to be published to the view.
+	 * @throws BattleModelException 
 	 * @throws NotAfflictedWithStatusException 
 	 */
-	public AiBattleReturnType aiTurn(Hero monster, Player human) {
+	public AiBattleReturnType aiTurn(Hero monster, Player human) throws BattleModelException {
 		
 		AiBattleReturnType target = new AiBattleReturnType(null,null);
 		System.out.println("Enemy Turn!");
@@ -224,7 +208,7 @@ public class AI extends Player{
             AIControlled = monster.updateStatuses();
         }
 		
-		if(!AIControlled) {
+		if(!AIControlled && monster.getHealth() > 0) {
 			try	{ target = this.scan((Monster)monster, human); }
     		catch(MaximumStatException e) { e.printStackTrace(); }
 		}

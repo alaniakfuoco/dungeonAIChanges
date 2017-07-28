@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.TreeMap;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import BattleCommands.Ability;
 import BattleCommands.BattleCommand;
@@ -18,7 +17,9 @@ import Heros.Hero;
 import PartyContainers.AI;
 import PartyContainers.AiBattleReturnType;
 import PartyContainers.Player;
+import RPG_Exceptions.BattleModelException;
 import RPG_Exceptions.MaximumStatException;
+
 
 public class BattleModel {
 	private BattleController controller; 
@@ -276,9 +277,14 @@ public class BattleModel {
 	        		  System.out.println("****************************************************");
 	        		  System.out.println("Current AI health: " + currentHero.getHealth());
 	        		  
-	        		  AiBattleReturnType AI_Move; 
-					  AI_Move = AI.aiTurn(currentHero, human);
-					  
+	        		  AiBattleReturnType AI_Move = null; 
+					
+					  try {
+						AI_Move = AI.aiTurn(currentHero, human);
+					} catch (BattleModelException e1) {
+						e1.printStackTrace();
+					}
+				
 	        		  // Extract target and ability from AiBattleReturnType
 	        		  Hero AI_target = AI_Move.getTarget();
 	        		  BattleCommand AI_ability = AI_Move.getCmd();
@@ -316,22 +322,27 @@ public class BattleModel {
         			  controller.changeButtonNamesAndCmds(currentHero);
         			  firstGo = false;
         			  boolean crowdControlled = currentHero.updateStatuses(controller);
-                      if(!crowdControlled)
-                         {
-                          System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                      if(currentHero.getHealth() < 1)
+                       {
+                    	  System.out.println("Knocked Out!!!");
+                          updateOnSuccessfulEvent(currentHero);
+                      }
+                      else if (crowdControlled) {
+                    	  
+                          System.out.println("Stunned!!!");
+                          updateOnSuccessfulEvent(currentHero);
+                      }
+                      else 
+                      {
+                    	  System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                           System.out.println("Current hero health: " + currentHero.getHealth());
                           try {
                             pauseThread();
-                        } catch (InterruptedException e) {
+                          } catch (InterruptedException e) {
                             e.printStackTrace();
-                        }
+                          }
                           System.out.println("Please input a command");
                           checkForPause();
-                        }
-                      else 
-                      {
-                          System.out.println("Stunned!!!");
-                          updateOnSuccessfulEvent(currentHero);
                       }
                   }
     		 }
@@ -399,21 +410,9 @@ public class BattleModel {
 				// Animate Attack
 				updateOnSuccessfulEvent(watchingHero);
     		}
-    		catch(IllegalArgumentException notEnoughAP)
+    		catch(BattleModelException battleException)
     		{
-    			// Print the trace, good for debugging if necessary
-    			notEnoughAP.printStackTrace();
-    			controller.sendNotEnoughAbilityPointsSignal();
-    		}
-    		catch(MaximumStatException statsMax)
-    		{
-    			// Print the trace, good for debugging if necessary
-    			statsMax.printStackTrace();
-    			controller.sendMaxStatExceptionSignal();
-    		}
-    		catch(NullPointerException cancelledTarget)
-    		{
-    			
+    			battleException.sendControllerErrorSignal();
     		}
     	} 
     }
@@ -484,8 +483,8 @@ public class BattleModel {
 		    		controller.signalDisplayAbilityUsed(currentHero, item);
 		    		updateOnSuccessfulEvent(currentHero);
 		    		gameState.resumeThread();
-				} catch (MaximumStatException e1) {
-					controller.sendMaxStatExceptionSignal();				
+				} catch (BattleModelException itemException) {
+					itemException.sendControllerErrorSignal();				
 				} 
 	        });
 	    }

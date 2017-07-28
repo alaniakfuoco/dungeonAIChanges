@@ -22,7 +22,7 @@ import Statuses.StatusEffectAbility;
  */
 
 public abstract class Monster extends Hero {
-	
+	private static final String HERO_NAME = "AI_Monster";
 	protected static int experiencePerLevel = 100;
 	protected int baseStrength;
 	protected int strengthItemBonus;
@@ -47,7 +47,7 @@ public abstract class Monster extends Hero {
 	 * @param controlledBy: controlled by field, has to be a final constant from either HumanPlayer or AI, determines where control is passed in the battle system
 	 */
 	public Monster(String image, int experience, int level, int health, int abilityPoints, int defenseRating, int speed, String controlledBy) {
-		super(image, experience, level, health, abilityPoints, defenseRating, speed, controlledBy);
+		super(image, experience, level, health, abilityPoints, defenseRating, speed, controlledBy, HERO_NAME);
 	}
 	
 	/**
@@ -111,7 +111,45 @@ public abstract class Monster extends Hero {
 		Hero target = null;
 		ArrayList<Hero> options = new ArrayList<>();
 		for(Hero currentTarget : playerParty) {
-			if (currentTarget.updateStatuses()) { options.add(currentTarget); }
+			if (currentTarget.checkIfCrowdControlled()) { options.add(currentTarget); }
+		}
+		if (options.size() != 0) {
+			target = pickRandom(options);
+		}
+		return target;
+	}
+	
+	/**
+	 * Selects a target by determining which character has the highest or lowest of the specified stat.
+	 * @param playerParty Collection of characters.
+	 * @param stat A String used to specify which stat is to be evaluated.
+	 * @param lower A boolean value.  If true the method will look for the character which has the lowest stat, else it will find the highest.
+	 * @return Hero A character which has the highest or lowest stat.
+	 */
+	public static Hero selectIfNotCrowdControlled(Collection<Hero> playerParty) {
+		Hero target = null;
+		ArrayList<Hero> options = new ArrayList<>();
+		for(Hero currentTarget : playerParty) {
+			if (!currentTarget.checkIfCrowdControlled()) { options.add(currentTarget); }
+		}
+		if (options.size() != 0) {
+			target = pickRandom(options);
+		}
+		return target;
+	}
+	
+	/**
+	 * Selects a target by determining which character has the highest or lowest of the specified stat.
+	 * @param playerParty Collection of characters.
+	 * @param stat A String used to specify which stat is to be evaluated.
+	 * @param lower A boolean value.  If true the method will look for the character which has the lowest stat, else it will find the highest.
+	 * @return Hero A character which has the highest or lowest stat.
+	 */
+	public static Hero selectRandomTarget(Collection<Hero> playerParty) {
+		Hero target = null;
+		ArrayList<Hero> options = new ArrayList<>();
+		for(Hero currentTarget : playerParty) {
+			options.add(currentTarget);
 		}
 		if (options.size() != 0) {
 			target = pickRandom(options);
@@ -187,11 +225,21 @@ public abstract class Monster extends Hero {
 		Collection<Ability> abilities = this.getAbilities().values();
 		Collection<Ability> availableAbilities = new ArrayList<>();
 		for (Ability a : abilities) {
-			if (a.getPointCost() < this.getAbilityPoints()) {
+			if (a.getPointCost() <= this.getAbilityPoints()) {
 				availableAbilities.add(a);
 			}
 		}
 		return availableAbilities;
+	}
+	
+	public static Collection<Hero> getAvailableTargets(Collection<Hero> party) {
+		Collection<Hero> availableTargets = new ArrayList<>();
+		for (Hero currentTarget : party) {
+			if (currentTarget.getHealth() > 0) {
+				availableTargets.add(currentTarget);
+			}
+		}
+		return availableTargets;
 	}
 	
 	public static Ability getOffensiveAbility(Collection<Ability> abilities) {
@@ -248,10 +296,8 @@ public abstract class Monster extends Hero {
 	 * @return An element from options.
 	 */
 	public static <T> T pickRandom(ArrayList<T> options) {
-		if (options.size() == 1) { return options.get(0); }
-		T choice = null;
-		int pick = (int) Math.floor((Math.random() * (options.size()-(1-1)) + 1) + (1-1));
-		choice = options.get(pick);
+		int pick = (int) Math.floor(Math.random() * options.size());
+		T choice = options.get(pick);
 		return choice;
 	}
 
