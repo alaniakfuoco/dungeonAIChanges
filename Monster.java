@@ -2,21 +2,19 @@ package Heros;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-
 import BattleCommands.Ability;
 import BattleCommands.BaseAttack;
 import BattleCommands.CrowdControlAbility;
 import BattleCommands.DefensiveAbility;
 import BattleCommands.OffensiveAbility;
-import PartyContainers.AI;
 import PartyContainers.AiBattleReturnType;
 import Statuses.StatusEffectAbility;
 
 /**
  * Monster abstract class. 
- *  Includes a unique abstract method to be used by Monsters for individual battle behaviour.
- *  Includes various methods to select abilities or targets based on supplied parameters.
+ * This class will be used specifically for computer controlled Hero instances.
+ * Includes various methods to select abilities or targets based on supplied parameters.
+ * Includes various methods to supply information to the Monster based on its current state.
  * @author Andrew
  *
  */
@@ -52,25 +50,30 @@ public abstract class Monster extends Hero {
 	
 	/**
 	 * Abstract method used by Monsters to determine actions during battle.  
-	 * This method will be used as part of the AI functionality to return an ability to use and a target.
-	 * @param playerParty 
-	 * @return an AiBattleReturnType. 
+	 * This method will be used as part of the AI functionality to return an ability to use and a target (if applicable).
+	 * @param Collection<Hero> A list of the Hero instances in the player's party
+	 * @return AiBattleReturnType holding both a target (if applicable) and an ability to use. 
 	 */
 	public abstract AiBattleReturnType selectCommand(Collection<Hero> playerParty);
 	
 	/**
 	 * Abstract method used by Monsters to determine actions during battle.  
-	 * This method will be used to choose the Monsters ability to be used during it's turn.
-	 * @param Collection<Ability> list of Abilities to be chosen from 
-	 * @return an AiBattleReturnType. 
+	 * This method specifics a double value to force certain actions.
+	 * Used specifically for testing purposes.
+	 * @param Collection<Hero> A list of the Hero instances in the player's party
+	 * @param Double A value to control which type of ability will be selected.
+	 * @return AiBattleReturnType holding both a target (if applicable) and an ability to use. 
 	 */
-	//public abstract Ability pickAbility(Collection<Ability> abilities);
+	public AiBattleReturnType selectCommand(Collection<Hero> playerParty, double value){
+		return null;
+	}
 	
 	/**
 	 * Selects a target by determining which character has the highest or lowest of the specified stat.
-	 * @param playerParty Collection of characters.
-	 * @param stat A String used to specify which stat is to be evaluated.
-	 * @param lower A boolean value.  If true the method will look for the character which has the lowest stat, else it will find the highest.
+	 * Requires the Collection<Hero> argument to contain at least one instance or the method will return null.
+	 * @param Collection<Hero> Collection of characters to be looked at.
+	 * @param String A String used to specify which stat is to be evaluated.
+	 * @param Boolean A boolean value.  If true the method will look for the character which has the lowest stat, else it will find the highest.
 	 * @return Hero A character which has the highest or lowest stat.
 	 */
 	public static Hero selectByStat(Collection<Hero> playerParty, String stat, boolean lower) {
@@ -101,11 +104,10 @@ public abstract class Monster extends Hero {
 	}
 	
 	/**
-	 * Selects a target by determining which character has the highest or lowest of the specified stat.
-	 * @param playerParty Collection of characters.
-	 * @param stat A String used to specify which stat is to be evaluated.
-	 * @param lower A boolean value.  If true the method will look for the character which has the lowest stat, else it will find the highest.
-	 * @return Hero A character which has the highest or lowest stat.
+	 * Selects a target by determining which character is under a Crowd Control effect.
+	 * Requires the Collection<Hero> argument to contain at least one instance or the method will return null.
+	 * @param Collection<Hero> Collection of characters to be looked at.
+	 * @return Hero A random character which is under a Crown Control effect.
 	 */
 	public static Hero selectIfCrowdControlled(Collection<Hero> playerParty) {
 		Hero target = null;
@@ -120,11 +122,10 @@ public abstract class Monster extends Hero {
 	}
 	
 	/**
-	 * Selects a target by determining which character has the highest or lowest of the specified stat.
-	 * @param playerParty Collection of characters.
-	 * @param stat A String used to specify which stat is to be evaluated.
-	 * @param lower A boolean value.  If true the method will look for the character which has the lowest stat, else it will find the highest.
-	 * @return Hero A character which has the highest or lowest stat.
+	 * Selects a target by determining which character is not under a Crowd Control effect.
+	 * Requires the Collection<Hero> argument to contain at least one instance or the method will return null.
+	 * @param Collection<Hero> Collection of characters to be looked at.
+	 * @return Hero A random character which is not under a Crown Control effect.
 	 */
 	public static Hero selectIfNotCrowdControlled(Collection<Hero> playerParty) {
 		Hero target = null;
@@ -139,11 +140,10 @@ public abstract class Monster extends Hero {
 	}
 	
 	/**
-	 * Selects a target by determining which character has the highest or lowest of the specified stat.
-	 * @param playerParty Collection of characters.
-	 * @param stat A String used to specify which stat is to be evaluated.
-	 * @param lower A boolean value.  If true the method will look for the character which has the lowest stat, else it will find the highest.
-	 * @return Hero A character which has the highest or lowest stat.
+	 * Selects a target by randomly choosing from a collection.
+	 * Requires the Collection<Hero> argument to contain at least one instance or the method will return null.
+	 * @param Collection<Hero> Collection of characters to be looked at.
+	 * @return Hero A random character which is under a Crown Control effect.
 	 */
 	public static Hero selectRandomTarget(Collection<Hero> playerParty) {
 		Hero target = null;
@@ -158,69 +158,10 @@ public abstract class Monster extends Hero {
 	}
 
 	/**
-	 * Picks current acting hero's highest damage attack.
-	 * @param hero: Current acting hero.
-	 * @return Current acting hero's highest damage attack.
+	 * Returns a collection of Ability which can be used by the Monster.
+	 * An Ability is usable if the Monster has enough Ability Points (AP >= Cost).
+	 * @return Collection<Ability> A collection of usable Ability
 	 */
-	private OffensiveAbility pickHighestDamage()
-	{
-		// Pick Own best ability
-		HashMap<String, Ability> abilities = this.getAbilities();
-		
-		int availableAB = this.getAbilityPoints();
-		
-		BaseAttack base = (BaseAttack) Ability.getAbility(this,"BaseAttack");
-		int currentHighestDamage = base.getDamage();
-		OffensiveAbility cmd = base;
-		for(Ability ability : abilities.values())
-		{
-			if(ability instanceof OffensiveAbility)
-			{
-				OffensiveAbility offensive = (OffensiveAbility) ability;
-				int currentDamage = offensive.getDamage();
-				if((currentDamage > currentHighestDamage) && (offensive.getPointCost() < availableAB))
-				{
-					currentHighestDamage = currentDamage;
-					cmd = offensive;
-				}
-			}
-		}
-		return cmd;
-	}
-	
-	/**
-	 * AI's method to scan it's the enemy's party to determine their strongest available attack to use.
-	 * @param party: enemy's party
-	 * @return Enemy's strongest available attack party wide
-	 */
-	private static OffensiveAbility pickHighestDamage(Collection<Hero> party)
-	{
-		// Scans entire party 
-		int currentHighestDamage = 0;
-		OffensiveAbility cmd = null;
-		for(Hero playerHero : party)
-		{
-			HashMap<String, Ability> abilities = playerHero.getAbilities();
-			Collection<Ability> currentAbilities = abilities.values();
-			for(Ability ability : currentAbilities)
-			{
-				if(ability instanceof OffensiveAbility)
-				{
-					int availableAB = playerHero.getAbilityPoints();
-					OffensiveAbility offensive = (OffensiveAbility) ability;
-					int currentDamage = offensive.getDamage();
-					if((currentDamage > currentHighestDamage) && (offensive.getPointCost() < availableAB))
-					{
-						currentHighestDamage = currentDamage;
-						cmd = offensive;
-					}
-				}
-			}	
-		}
-	
-		return cmd;
-	}
-	
 	public Collection<Ability> getAvailableAbilities() {
 		Collection<Ability> abilities = this.getAbilities().values();
 		Collection<Ability> availableAbilities = new ArrayList<>();
@@ -232,6 +173,11 @@ public abstract class Monster extends Hero {
 		return availableAbilities;
 	}
 	
+	/**
+	 * Returns a collection of Hero which can be targetted by the Monster.
+	 * A Hero is targetable if it is not considered dead (health > 0). 
+	 * @return Collection<Hero> A collection of usable Ability
+	 */
 	public static Collection<Hero> getAvailableTargets(Collection<Hero> party) {
 		Collection<Hero> availableTargets = new ArrayList<>();
 		for (Hero currentTarget : party) {
@@ -242,6 +188,11 @@ public abstract class Monster extends Hero {
 		return availableTargets;
 	}
 	
+	/**
+	 * Returns a random ability that matches the type OffensiveAbility and not one of StatusEffectAbility.
+	 * @param Collection<Ability> A collection of Ability to be considered.
+	 * @return Ability A randomly selected Ability from the Ability that match the specified typing.
+	 */
 	public static Ability getOffensiveAbility(Collection<Ability> abilities) {
 		ArrayList<Ability> options = new ArrayList<>();
 		for(Ability currentAbility : abilities) {
@@ -254,6 +205,11 @@ public abstract class Monster extends Hero {
 		return null;
 	}
 	
+	/**
+	 * Returns a random ability that matches the type StatusEffectAbility and not one of DefensiveAbility.
+	 * @param Collection<Ability> A collection of Ability to be considered.
+	 * @return Ability A randomly selected Ability from the Ability that match the specified typing.
+	 */
 	public static Ability getOffensiveStatusAbility(Collection<Ability> abilities) {
 		ArrayList<Ability> options = new ArrayList<>();
 		for(Ability currentAbility : abilities) {
@@ -266,6 +222,11 @@ public abstract class Monster extends Hero {
 		return null;
 	}
 	
+	/**
+	 * Returns a random ability that matches the type DefensiveAbility.
+	 * @param Collection<Ability> A collection of Ability to be considered.
+	 * @return Ability A randomly selected Ability from the Ability that match the specified typing.
+	 */
 	public static Ability getDefensiveAbility(Collection<Ability> abilities) {
 		ArrayList<Ability> options = new ArrayList<>();
 		for(Ability currentAbility : abilities) {
@@ -278,6 +239,11 @@ public abstract class Monster extends Hero {
 		return null;
 	}
 	
+	/**
+	 * Returns a random ability that matches the type CrowdControlAbility.
+	 * @param Collection<Ability> A collection of Ability to be considered.
+	 * @return Ability A randomly selected Ability from the Ability that match the specified typing.
+	 */
 	public static Ability getCrowdControlAbility(Collection<Ability> abilities) {
 		ArrayList<Ability> options = new ArrayList<>();
 		for(Ability currentAbility : abilities) {
@@ -306,11 +272,13 @@ public abstract class Monster extends Hero {
 	public double getRecoverPointsRange() { return recoverRange; }
 	public double getRecoverPointsChance() { return recoverChance; }
 	public double getCureChance() { return cureChance; }
+	public BaseAttack getBaseAttack() { return this.baseAttack; };
 	
 	public void setHealRange(double percentage) { healRange = percentage; }
 	public void setHealChance(double percentage) { healChance = percentage; }
 	public void setRecoverPointsRange(double percentage) { recoverRange = percentage; }
 	public void setRecoverPointsChance(double percentage) { recoverChance  = percentage; }
 	public void setCureChance(double percentage) { cureChance  = percentage; }
+	public final void setBaseAttack(BaseAttack baseAttack) {  this.baseAttack = baseAttack; };
 	
 }

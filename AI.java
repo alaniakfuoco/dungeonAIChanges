@@ -2,18 +2,14 @@ package PartyContainers;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.TreeMap;
-
-import BattleCommands.Ability;
 import BattleCommands.AbilityItem;
-import BattleCommands.BaseAttack;
 import BattleCommands.BattleCommand;
 import BattleCommands.HealthItem;
 import BattleCommands.Item;
 import BattleCommands.OffensiveAbility;
 import BattleCommands.StatusItem;
-import GridGUI.BattleController;
+import BattleMVC.BattleController;
 import Heros.Hero;
 import Heros.Monster;
 import Heros.SkeletonArcher;
@@ -24,6 +20,7 @@ import RPG_Exceptions.BattleModelException;
 import RPG_Exceptions.MaximumStatException;
 import RPG_Exceptions.NotAfflictedWithStatusException;
 import Statuses.Status;
+
 /**
  * Artificial Intelligence class, will scan the human opponent and make a decision as which move to make.
  * @author Kevin, Andrew 
@@ -61,16 +58,16 @@ public class AI extends Player{
 	}
 	
 	/**
-	 * The function used to determine what the AI player is going to do. This is a multiple step process in which the AI....
-	 * 1) Checks to see if it's health is 30% or less (compared to it's maximum health) and will use a potion 50% of the time
-	 * 2) If it is poisoned it will use an antidote, 75% of the time
-	 * 3) If it does not use an item it will call it's own function 'selectCommand' which selects a target and ability to be used
-	 * @param monster The current acting character
-	 * @param player The enemy's player to access their party
-	 * @return AiBattleReturnType What is this? A class specifically made so that we can return two types of values by setting them as fields in this class.
-	 * This class stores the target and AI ability used to be published to the view. 
-	 * @throws BattleModelException 
-	 * @throws NotAfflictedWithStatusException 
+	 * This method is used to determine a Monster's actions in battle.
+	 * The method uses various values from the Monster to when and how often it will use certain items.
+	 * The priority of items goes as follows: health item, status cure item, ability point item.
+	 * If an item is not used the method will call the Monsters selectCommand method which through polymorphism is
+	 * different based on the type of Monster acting.
+	 * @param Monster The current acting character
+	 * @param Player The enemy's player to access their party
+	 * @return AiBattleReturnType The object which holds both the ability to be used and target.
+	 * @throws A child of BattleModelException if the defensive ability or item used cannot increase the statistic that it affects, if you pick a 
+	 * target that isn't alive, or if the character doesn't have enough ability points. 
 	 */
 	public AiBattleReturnType scan(Monster monster, Player player) throws BattleModelException
 	{
@@ -86,11 +83,11 @@ public class AI extends Player{
 			double random = Math.random();
 			if (random < monster.getHealChance()) {
 				Item item = pickHealingItem();
-				if(item != null)
+				if(item != null)		//If a healing item exists, use it
 				{
 					useItem(item, monster);
 					result = new AiBattleReturnType(null,item);
-					return result;
+					return result;		
 				}
 			}
 		}
@@ -99,12 +96,10 @@ public class AI extends Player{
 		Collection<Status> status = monster.getStatuses().values();
 
 		if (status.size() != 0) {
-			//String statusAffliction = setStatusCure(status);
-			
 			double random = Math.random();
 			if (random < monster.getCureChance()) {
 				Item item = setStatusCure(status);
-				if(item != null)
+				if(item != null)	//If a curing item exists, use it
 				{
 					useItem(item, monster);
 					result = new AiBattleReturnType(null,item);
@@ -120,7 +115,7 @@ public class AI extends Player{
 			double random = Math.random();
 			if (random < monster.getHealChance()) {
 				Item item = pickAbilityPointItem();
-				if(item != null)
+				if(item != null)	//If an ability point item exists, use it
 				{
 					useItem(item, monster);
 					result = new AiBattleReturnType(null,item);
@@ -130,11 +125,11 @@ public class AI extends Player{
 		}
 		
 
-		// Attack if no need to heal/recover
+		// Attack if Monster did not heal/recover
+		//selectCommand will select ability and target based on the Monster's sub-type
 		result = monster.selectCommand(playerParty);
 		
 		System.out.println("AI using ability: " + result.getCmd().toString());
-		//System.out.println(result.getTarget().getClass());
 		
 		BattleCommand ability = result.getCmd();
 		Hero target = result.getTarget();
@@ -157,19 +152,16 @@ public class AI extends Player{
 		}
 		
 		return result;
-		//return result;
-		//OffensiveAbility AIhighestDamage = pickHighestDamage(monster);
-		//System.out.println("AI using ability: " + AIhighestDamage.toString());
-		//Hero target = selectTarget(playerParty);
-		//System.out.println(target.getClass());
-		//AIhighestDamage.useBattleCommand(monster, target);
-		// Return target and ability used 
-		//result = new AiBattleReturnType(target,AIhighestDamage);
-		
-		//return result;
 		
 	}
 	
+	/**
+	 * A simple method which calls useBattleCommand on the specified Item instance.
+	 * If controller present animates.
+	 * @param Item item to use
+	 * @param Monster acting monster to use it on
+	 * @throws BattleModelException if item won't change hero's stats.
+	 */
 	private void useItem(Item item, Monster monster) throws BattleModelException {
 		System.out.println("AI using item: " + item.toString());
 		Hero target = null;
@@ -208,7 +200,7 @@ public class AI extends Player{
             AIControlled = monster.updateStatuses();
         }
 		
-		if(!AIControlled && monster.getHealth() > 0) {
+		if(!AIControlled && monster.getHealth() > 0) {		//If Monster is under a crowd control effect, or it's health is 0, do not act.
 			try	{ target = this.scan((Monster)monster, human); }
     		catch(MaximumStatException e) { e.printStackTrace(); }
 		}
@@ -216,38 +208,8 @@ public class AI extends Player{
 		return target;
 	}
 	
-	
 	/**
-	 * AI's method to select the enemy target with the lowest health.
-	 * @param party: enemy party to scan
-	 * @return Hero: the target to attack 
-	 */
-	/*
-	private Hero selectTarget(Collection<Hero> party)
-	{
-		Hero target = null;
-		int lowestHealth = Integer.MAX_VALUE;
-		int count = 0;
-		for(Hero playerHero : party) {
-			
-			int currentHealth = playerHero.getHealth();
-			if((count == 0) && (currentHealth > 0))
-			{
-				lowestHealth = currentHealth;
-				target = playerHero;
-			}
-			else if((currentHealth > 0) && (currentHealth < lowestHealth))
-			{
-				lowestHealth = playerHero.getHealth();
-				target=playerHero;
-			}
-			count ++;
-		}
-		return target;
-	}
-	*/
-	/**
-	 * Pick strongest healing item.
+	 * Picks strongest healing item.
 	 * @return Strongest healing item.
 	 */
 	private Item pickHealingItem()
@@ -257,9 +219,10 @@ public class AI extends Player{
 		int largestHeal = 0;
 		if(!inv.isEmpty())
 		{
+			// Loops through entire inventory
 			for(Item item : inv.values())
 			{
-				// Make sure to check for healing items 
+				// Make sure to check only for healing items 
 				if (item instanceof HealthItem)
 				{
 					int currentHeal = item.getEffectStrength();
@@ -283,9 +246,10 @@ public class AI extends Player{
 		int largestHeal = 0;
 		if(!inv.isEmpty())
 		{
+			// Loops through entire inventory
 			for(Item item : inv.values())
 			{
-				// Make sure to check for healing items 
+				// Make sure to check only for ability point items 
 				if (item instanceof AbilityItem)
 				{
 					int currentHeal = item.getEffectStrength();
@@ -298,32 +262,7 @@ public class AI extends Player{
 		}
 		return bestItem;
 	}
-	
-	/**
-	 * Picks an item to remove a poison effect.
-	 * @return Strongest healing item.
-	 */
-	private Item pickStatusItem(String status) {
-		Item antidote = null;
-		TreeMap<String, Item> inv = this.getInventory();
-		if(!inv.isEmpty())
-		{
-			for(Item item : inv.values())
-			{
-				// Find an existing antidote item
-				if (item instanceof StatusItem)
-				{
-					if(((StatusItem) item).getStatusAffected() == status)
-					{
-						antidote = item;
-					}
-				}
-			}
-		}
-		System.out.println("Item: " + antidote.toString());
-		return antidote;
-	}
-	
+
 	/**
 	 * Picks a random status effect which the current actor has an item for.
 	 * @param status A collection of all the status the current actor has.
@@ -332,19 +271,21 @@ public class AI extends Player{
 	private Item setStatusCure(Collection<Status> status) {
 		ArrayList<Item> matches = new ArrayList<>();
 		Collection<Item> inventory = this.getInventory().values();
-		for(Status currentStatus : status) {
-			for(Item currentItem : inventory) {
+		for(Status currentStatus : status) {	// Loops through each status
+			for(Item currentItem : inventory) {	// For each status, check to see if an item exists that can cure it
 				if (currentItem instanceof StatusItem && currentStatus.getName() == ((StatusItem) currentItem).getStatusAffected()) {
-					matches.add(currentItem);
+					matches.add(currentItem);	// If an item exists add it to the list.
 				}
 			}
 		}
 		if (matches.size() == 0) { return null; }
-		return Monster.pickRandom(matches);
+		return Monster.pickRandom(matches);		// Picks a random match
 	}
 	
-	
-	
+	/**
+	 * Set the AI's controller.
+	 * @param controller
+	 */
 	public void setController(BattleController controller)
 	{
 		this.controller = controller;

@@ -15,19 +15,15 @@ import BattleCommands.SoldierAbility.Defend;
  */
 
 public class SkeletonBoss extends Defender {
-	private static int experiencePerLevel = 100;
+	private static final String HERO_NAME = "Skeleton Boss";
 	private static final String IMAGE = "/boss_skele.gif";
-	private int baseStrength;
-	private int strengthItemBonus;
-	private int attackPower;
-	private BaseAttack baseAttack;
 	private OffensiveAbility hamString = new SoldierAbility.HamString();
 	private OffensiveAbility shieldBash = new SoldierAbility.ShieldBash();
 	private Defend SkeletonBossDefend = new SoldierAbility.Defend(3);
 	
 	/**
 	 * Default SkeletonBoss constructor
-	 * @param controlledBy: who will control this character, player or AI?
+	 * @param controlledBy who will control this character, player or AI?
 	 */
 	public SkeletonBoss(String controlledBy)
 	{
@@ -41,6 +37,9 @@ public class SkeletonBoss extends Defender {
 		this.setAbilityCheckType(hamString);
 		this.setAbilityCheckType(SkeletonBossDefend);
 		this.setAbilityCheckType(shieldBash);
+		this.setBaseAttack(baseAttack);
+		this.setName(HERO_NAME);
+		this.setAttackPower(attackPower);
 	}
 	
 	/**

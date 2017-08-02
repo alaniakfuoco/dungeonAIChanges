@@ -13,13 +13,14 @@ import BattleCommands.SoldierAbility.Defend;
  *
  */
 public class SkeletonSpearMan extends Punisher {
+	private static final String HERO_NAME = "Skeleton Spearman";
 	private static final String IMAGE = "/spear.gif";
 	private OffensiveAbility lunge = new SoldierAbility.Lunge();
 	private OffensiveAbility shieldBash = new SoldierAbility.ShieldBash();
 	
 	/**
 	 * Default SkeletonSpearMan constructor
-	 * @param controlledBy: who will control this character, player or AI?
+	 * @param controlledBy who will control this character, player or AI?
 	 */
 	public SkeletonSpearMan(String controlledBy)
 	{
@@ -34,6 +35,9 @@ public class SkeletonSpearMan extends Punisher {
 		this.setAbilityCheckType(lunge);
 		this.setAbilityCheckType(SkeletonSpearManDefend);
 		this.setAbilityCheckType(shieldBash);
+		this.setBaseAttack(baseAttack);
+		this.setName(HERO_NAME);
+		this.setAttackPower(attackPower);
 	}
 	
 	/**

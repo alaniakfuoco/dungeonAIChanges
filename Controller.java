@@ -3,9 +3,6 @@ package Heros;
 import java.util.Collection;
 
 import BattleCommands.Ability;
-import BattleCommands.CrowdControlAbility;
-import BattleCommands.DefensiveAbility;
-import BattleCommands.OffensiveAbility;
 import PartyContainers.AiBattleReturnType;
 
 
@@ -24,7 +21,18 @@ import PartyContainers.AiBattleReturnType;
  */
 public abstract class Controller extends Monster {
 
-	
+	/**
+	 * Constructor to create an instance of the Controller class.
+	 * This constructor will specify values for a Monster to check when to use items.
+	 * @param image: image to be used by the view
+	 * @param experience: experience, not yet implemented
+	 * @param level: level, not yet implements
+	 * @param health: initial hero health, also sets the hero's maximum health
+	 * @param abilityPoints: initial hero ability points, also sets the hero's maximum ability points 
+	 * @param defenseRating: hero's defense rating
+	 * @param speed: hero's speed rating, used for sorting to build initial battle queue order
+	 * @param controlledBy: controlled by field, has to be a final constant from either HumanPlayer or AI, determines where control is passed in the battle system
+	 */
 	public Controller(String image, int experience, int level, int health, int abilityPoints, int defenseRating,
 			int speed, String controlledBy) {
 		super(image, experience, level, health, abilityPoints, defenseRating, speed, controlledBy);
@@ -35,6 +43,12 @@ public abstract class Controller extends Monster {
 		setCureChance(0.5);
 	}
 
+	/**
+	 * Abstract method used by Monsters to determine actions during battle.  
+	 * This method will be used as part of the AI functionality to return an ability to use and a target (if applicable).
+	 * @param Collection<Hero> A list of the Hero instances in the player's party
+	 * @return AiBattleReturnType holding both a target (if applicable) and an ability to use. 
+	 */
 	public AiBattleReturnType selectCommand(Collection<Hero> playerParty) {
 			
 			Hero target = null;
@@ -44,7 +58,7 @@ public abstract class Controller extends Monster {
 			Collection<Hero> availableTargets = getAvailableTargets(playerParty);
 			
 			if (availableAbilities.size() < 2) {
-				ability = baseAttack;
+				ability = this.getBaseAttack();
 				target = selectByStat(availableTargets,"health",true); //Lowest Health
 				return new AiBattleReturnType(target, ability);
 			}
@@ -67,7 +81,7 @@ public abstract class Controller extends Monster {
 				}
 			}
 			if (ability == null) { 
-				ability = baseAttack;
+				ability = this.getBaseAttack();
 				target = selectByStat(availableTargets,"health",true); //Lowest Health 
 			}
 			return new AiBattleReturnType(target, ability);

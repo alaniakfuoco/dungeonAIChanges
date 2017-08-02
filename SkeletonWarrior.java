@@ -13,13 +13,14 @@ import BattleCommands.SoldierAbility.Defend;
  *
  */
 public class SkeletonWarrior extends Controller {
+	private static final String HERO_NAME = "Skeleton Warrior";
 	private static final String IMAGE = "/warrior.gif";
 	private OffensiveAbility hamString = new SoldierAbility.HamString();
 	private OffensiveAbility shieldBash = new SoldierAbility.ShieldBash();
 	
 	/**
 	 * Default SkeletonWarrior constructor
-	 * @param controlledBy: who will control this character, player or AI?
+	 * @param controlledBy who will control this character, player or AI?
 	 */
 	public SkeletonWarrior(String controlledBy)
 	{
@@ -34,6 +35,9 @@ public class SkeletonWarrior extends Controller {
 		this.setAbilityCheckType(hamString);
 		this.setAbilityCheckType(SkeletonWarriorDefend);
 		this.setAbilityCheckType(shieldBash);
+		this.setBaseAttack(baseAttack);
+		this.setName(HERO_NAME);
+		this.setAttackPower(attackPower);
 	}
 	
 	/**

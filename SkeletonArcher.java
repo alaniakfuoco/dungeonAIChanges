@@ -13,6 +13,7 @@ import BattleCommands.SoldierAbility;
  */
 
 public class SkeletonArcher extends Weakener {
+	private static final String HERO_NAME = "Skeleton Archer";
 	private static final String IMAGE = "/archer.gif";
 	private OffensiveAbility snipe = new SoldierAbility.Snipe();
 	private OffensiveAbility multiShot = new SoldierAbility.MultiShot();
@@ -20,7 +21,7 @@ public class SkeletonArcher extends Weakener {
 	
 	/**
 	 * Default SkeletonArcher constructor
-	 * @param controlledBy: who will control this character, player or AI?
+	 * @param controlledBy who will control this character, player or AI?
 	 */
 	public SkeletonArcher(String controlledBy)
 	{
@@ -34,6 +35,9 @@ public class SkeletonArcher extends Weakener {
 		this.setAbilityCheckType(snipe);
 		this.setAbilityCheckType(poisonShot);
 		this.setAbilityCheckType(multiShot);
+		this.setBaseAttack(baseAttack);
+		this.setName(HERO_NAME);
+		this.setAttackPower(attackPower);
 	}
 	
 	/**
